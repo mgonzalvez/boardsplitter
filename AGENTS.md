@@ -4,7 +4,8 @@
 
 BoardSplitter is a single-page web app that lets board game designers upload a large game board image (PDF, JPG, or PNG) and split it into printable pages (US Letter or A4). It's a web clone of the Mac app [SplitPrint](https://www.splitprint.com/), specialized for board game prototyping.
 
-**Target URL:** `boardsplitter.gonzhome.us` (GitHub Pages)
+**Production URL:** `https://boardsplitter.gonzhome.us` (GitHub Pages)
+**Repository:** `https://github.com/mgonzalvez/boardsplitter`
 **Stack:** Vanilla HTML, CSS, JavaScript — no frameworks, no build step.
 
 ## Files
@@ -296,7 +297,16 @@ node --test tests/centering.test.js
 
 ## Deployment
 
-Push to a GitHub repo and enable GitHub Pages on the `main` branch. No build step needed — it's static HTML/CSS/JS with CDN dependencies.
+BoardSplitter deploys directly from the `main` branch at `/ (root)` in `mgonzalvez/boardsplitter`. GitHub Pages is configured with **Deploy from a branch** because the app has no build step.
+
+The production custom domain is `boardsplitter.gonzhome.us`:
+
+- The repository-root `CNAME` file must contain `boardsplitter.gonzhome.us`.
+- Cloudflare DNS must define `boardsplitter` as a CNAME targeting `mgonzalvez.github.io`.
+- Keep the Cloudflare record **DNS only** (gray cloud); proxying it can interfere with GitHub’s domain validation and certificate provisioning.
+- GitHub Pages **Enforce HTTPS** should be enabled after the certificate is available.
+
+On 2026-07-25, public DNS resolvers returned the expected CNAME, GitHub reported the Pages build as complete with an approved certificate, and the production URL served the BoardSplitter application.
 
 ## Known Limitations / Future Work
 

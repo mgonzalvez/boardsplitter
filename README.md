@@ -48,13 +48,16 @@ node --test tests/centering.test.js
 
 ## Deploy to GitHub Pages
 
-1. Create a GitHub repository and push these files to its default branch.
-2. Open the repository’s **Settings → Pages**.
-3. Choose **Deploy from a branch**.
-4. Select the default branch and the repository root.
-5. Save and wait for the published URL to appear.
+BoardSplitter is published from [mgonzalvez/boardsplitter](https://github.com/mgonzalvez/boardsplitter) using GitHub Pages:
+
+- Source: **Deploy from a branch**
+- Branch: `main`
+- Folder: `/ (root)`
+- Custom domain: [boardsplitter.gonzhome.us](https://boardsplitter.gonzhome.us)
 
 BoardSplitter is fully static and requires no server-side application.
+
+The repository’s root `CNAME` file contains `boardsplitter.gonzhome.us`. In Cloudflare DNS, the `boardsplitter` CNAME must target `mgonzalvez.github.io` and remain **DNS only** rather than proxied. After DNS and certificate validation finish in **Settings → Pages**, enable **Enforce HTTPS**.
 
 ## Dependencies
 
