@@ -211,9 +211,10 @@ test('responsive stylesheet covers light, dark, tablet, phone, touch, and reduce
   assert.match(html, /prefers-color-scheme: dark/);
 });
 
-test('Related Sites menu contains PnP Daily and all seven directory sites', () => {
+test('Related Sites menu starts with Gonzhome and contains all directory sites', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   const expectedSites = [
+    ['Gonzhome', 'https://gonzhome.us'],
     ['PnP Daily', 'https://pnpdaily.gonzhome.us'],
     ['PnPFinder', 'https://pnpfinder.com'],
     ['PnP Launchpad', 'https://launchpad.gonzhome.us'],
@@ -227,6 +228,8 @@ test('Related Sites menu contains PnP Daily and all seven directory sites', () =
   expectedSites.forEach(([name, url]) => {
     assert.match(html, new RegExp(`href="${url}"[^>]*>${name}</a>`));
   });
+
+  assert.match(html, /<nav class="related-sites-panel"[^>]*>\s*<a href="https:\/\/gonzhome\.us"[^>]*>Gonzhome<\/a>/);
 });
 
 test('Escape closes the Related Sites menu', () => {
