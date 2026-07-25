@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f7fb" id="theme-color-meta">
+  <title>BoardSplitter — Split Game Boards for Print & Play</title>
+  <script>
+    (() => {
+      let savedTheme = null;
+      try {
+        savedTheme = localStorage.getItem('boardsplitter-theme');
+      } catch (err) {
+        // Storage can be unavailable in private browsing; system theme still works.
+      }
+      const theme = savedTheme === 'light' || savedTheme === 'dark'
+        ? savedTheme
+        : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.style.colorScheme = theme;
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css?v=20260725-6">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'></svg>">
+
+  <!-- PDF.js for rendering uploaded PDFs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- jsPDF for multipage PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="8" height="8" rx="2"/>
+            <rect x="13" y="3" width="8" height="8" rx="2"/>
+            <rect x="3" y="13" width="8" height="8" rx="2"/>
+            <rect x="13" y="13" width="8" height="8" rx="2"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <h1>BoardSplitter</h1>
+          <p class="subtitle">Beautifully simple board tiling for print &amp; play</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <details id="related-sites-menu" class="related-sites-menu">
+          <summary class="related-sites-trigger">
+            <svg class="related-sites-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="2"/>
+              <rect x="14" y="3" width="7" height="7" rx="2"/>
+              <rect x="3" y="14" width="7" height="7" rx="2"/>
+              <rect x="14" y="14" width="7" height="7" rx="2"/>
+            </svg>
+            <span class="related-sites-label-full">Related Sites</span>
+            <span class="related-sites-label-short">Sites</span>
+            <svg class="related-sites-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </summary>
+          <nav class="related-sites-panel" aria-label="Related print and play sites">
+            <a href="https://pnpfinder.com" target="_blank" rel="noopener noreferrer">PnPFinder</a>
+            <a href="https://pnpdaily.gonzhome.us" target="_blank" rel="noopener noreferrer">PnP Daily</a>
+            <a href="https://launchpad.gonzhome.us" target="_blank" rel="noopener noreferrer">PnP Launchpad</a>
+            <a href="https://pnptools.gonzhome.us" target="_blank" rel="noopener noreferrer">PnPTools</a>
+            <a href="https://prototyper.gonzhome.us" target="_blank" rel="noopener noreferrer">Card Prototyper</a>
+            <a href="https://extractor.gonzhome.us" target="_blank" rel="noopener noreferrer">Card Extractor</a>
+            <a href="https://formatter.gonzhome.us" target="_blank" rel="noopener noreferrer">Card Formatter</a>
+            <a href="https://geeklist.gonzhome.us" target="_blank" rel="noopener noreferrer">Geeklist Generator</a>
+          </nav>
+        </details>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch appearance">
+          <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M20.5 15.2A8.5 8.5 0 018.8 3.5 8.5 8.5 0 1020.5 15.2z" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.5"/>
+            <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3l1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3l1.42-1.42" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Upload Section -->
+    <section id="upload-section" class="card">
+      <div id="drop-zone" class="drop-zone">
+        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 16V4m0 0L8 8m4-4l4 4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p class="upload-text">Drop a PDF, JPG, or PNG here</p>
+        <p class="upload-hint">or click to browse files</p>
+        <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png" hidden>
+      </div>
+    </section>
+
+    <!-- Workspace (hidden until file loaded) -->
+    <div id="workspace" class="hidden">
+
+      <!-- Controls Panel -->
+      <aside id="controls-panel" class="card controls-panel">
+        <h2>Settings</h2>
+
+        <!-- Board Physical Size -->
+        <div class="control-group">
+          <label>Board Physical Size</label>
+          <div class="unit-toggle">
+            <button id="btn-board-inches" class="unit-btn active" data-unit="in">in</button>
+            <button id="btn-board-cm" class="unit-btn" data-unit="cm">cm</button>
+          </div>
+        </div>
+
+        <div class="control-group size-grid">
+          <label for="board-width">Width</label>
+          <label for="board-height">Height</label>
+          <input type="number" id="board-width" value="0" min="0.1" step="0.01">
+          <input type="number" id="board-height" value="0" min="0.1" step="0.01">
+        </div>
+
+        <!-- Scale -->
+        <div class="control-group">
+          <label for="scale-slider">Scale: <span id="scale-value">100</span>%</label>
+          <input type="range" id="scale-slider" class="scale-slider" min="10" max="300" value="100" step="5">
+        </div>
+
+        <!-- Best Layout -->
+        <div class="control-group">
+          <button id="btn-optimize" class="btn btn-outline btn-full" title="Compare portrait and landscape without changing the board size">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            Find Best Layout
+          </button>
+          <p id="layout-result" class="control-help hidden" aria-live="polite"></p>
+        </div>
+
+        <!-- Grid Size -->
+        <div class="control-group">
+          <label>Grid (pages)</label>
+          <div class="size-grid">
+            <label for="grid-cols">Columns</label>
+            <label for="grid-rows">Rows</label>
+            <input type="number" id="grid-cols" value="1" min="1" max="20" step="1">
+            <input type="number" id="grid-rows" value="1" min="1" max="20" step="1">
+          </div>
+        </div>
+
+        <div id="image-info" class="control-group image-info hidden">
+          <span>Image: <strong id="image-dims"></strong></span>
+        </div>
+
+        <!-- Paper Size -->
+        <div class="control-group">
+          <label for="paper-size">Paper Size</label>
+          <select id="paper-size">
+            <option value="letter" selected>US Letter (8.5 &times; 11 in)</option>
+            <option value="a4">A4 (210 &times; 297 mm)</option>
+          </select>
+        </div>
+
+        <!-- Page Area Mode -->
+        <div class="control-group">
+          <label for="page-area-mode">Page Area</label>
+          <select id="page-area-mode">
+            <option value="printable" selected>Printable Area</option>
+            <option value="full">Full Area (Borderless)</option>
+            <option value="bleed">Bleed / Overlap</option>
+          </select>
+          <p id="page-area-help" class="control-help">
+            Keeps every board segment inside the margins below.
+          </p>
+        </div>
+
+        <!-- Orientation -->
+        <div class="control-group">
+          <label>Orientation</label>
+          <div class="unit-toggle">
+            <button id="btn-portrait" class="unit-btn active" data-orient="portrait">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px"><rect x="6" y="2" width="12" height="20" rx="2"/></svg>
+              Portrait
+            </button>
+            <button id="btn-landscape" class="unit-btn" data-orient="landscape">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
+              Landscape
+            </button>
+          </div>
+        </div>
+
+        <!-- Margin Unit Toggle -->
+        <div id="margin-unit-control" class="control-group">
+          <label>Margins</label>
+          <div class="unit-toggle">
+            <button id="btn-inches" class="unit-btn active" data-unit="in">in</button>
+            <button id="btn-cm" class="unit-btn" data-unit="cm">cm</button>
+          </div>
+        </div>
+
+        <!-- Margin Inputs -->
+        <div id="margin-inputs-control" class="control-group margin-grid">
+          <label for="margin-top">Top</label>
+          <label for="margin-right">Right</label>
+          <label for="margin-bottom">Bottom</label>
+          <label for="margin-left">Left</label>
+          <input type="number" id="margin-top" value="0.25" min="0" step="0.01">
+          <input type="number" id="margin-right" value="0.25" min="0" step="0.01">
+          <input type="number" id="margin-bottom" value="0.25" min="0" step="0.01">
+          <input type="number" id="margin-left" value="0.25" min="0" step="0.01">
+        </div>
+
+        <!-- Overlap -->
+        <div id="overlap-control" class="control-group hidden">
+          <label for="overlap">Overlap (bleed between tiles)</label>
+          <div class="input-with-unit">
+            <input type="number" id="overlap" value="0" min="0" step="0.01">
+            <span class="unit-label overlap-unit">in</span>
+          </div>
+        </div>
+
+        <!-- Trim Marks / Assembly Key -->
+        <div id="cutting-guides-control" class="control-group">
+          <div id="trim-style-control">
+            <label for="guide-style">Trim marks</label>
+            <select id="guide-style">
+              <option value="ticks" selected>Corner trim marks</option>
+              <option value="border">Full dashed border</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <label class="checkbox-label assembly-key-option" for="include-assembly-key">
+            <input type="checkbox" id="include-assembly-key">
+            <span>Include assembly key</span>
+          </label>
+          <p class="control-help">Adds an overview page with tile labels to show to assemble the entire board.</p>
+        </div>
+
+        <!-- Save / Load -->
+        <div class="control-group action-buttons">
+          <button id="btn-save" class="btn btn-outline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+            Save Project
+          </button>
+          <button id="btn-load" class="btn btn-outline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="9,8 12,5 15,8"/><line x1="12" y1="5" x2="12" y2="13"/></svg>
+            Load Project
+          </button>
+          <input type="file" id="load-input" accept=".json" hidden>
+        </div>
+
+        <!-- Change File -->
+        <div class="control-group">
+          <button id="btn-change-file" class="btn btn-ghost">Change file</button>
+        </div>
+      </aside>
+
+      <!-- Preview Section -->
+      <section id="preview-section" class="card preview-card">
+        <div class="preview-header">
+          <h2>Preview</h2>
+          <div class="preview-header-tools">
+            <div id="page-info" class="page-info"></div>
+            <div class="zoom-controls" role="group" aria-label="Preview zoom">
+              <button id="btn-zoom-out" class="zoom-btn" type="button" aria-label="Zoom preview out" title="Zoom out">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path d="M5 10h10" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <button id="btn-zoom-reset" class="zoom-readout" type="button" aria-label="Reset preview zoom to 100 percent" title="Reset zoom">
+                <span id="zoom-value">100%</span>
+              </button>
+              <button id="btn-zoom-in" class="zoom-btn" type="button" aria-label="Zoom preview in" title="Zoom in">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path d="M10 5v10M5 10h10" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="preview-container" class="preview-container">
+          <!-- Grid rendered here -->
+        </div>
+
+        <div class="preview-footer">
+          <div class="export-controls">
+            <label class="sr-only" for="export-format">Export format</label>
+            <select id="export-format" aria-label="Export format">
+              <option value="pdf" selected>PDF</option>
+              <option value="png">PNG tiles</option>
+              <option value="jpg">JPG tiles</option>
+            </select>
+            <button id="btn-export" class="btn btn-primary btn-large">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span id="export-label">Export PDF</span>
+            </button>
+          </div>
+          <p id="export-help" class="control-help hidden">Image tiles download together as a ZIP file.</p>
+        </div>
+      </section>
+
+    </div><!-- /workspace -->
+
+  </main>
+
+  <footer>
+    <p>BoardSplitter &mdash; Split game boards into printable pages</p>
+    <p class="site-credit">
+      Copyright 2026 by
+      <a href="mailto:help@pnpfinder.com?subject=Feedback%20for%20BoardSplitter">Martin Gonzalvez</a>.
+      If you find this site helpful,
+      <a href="https://ko-fi.com/marting" target="_blank" rel="noopener noreferrer">why not buy me a coffee?</a>
+    </p>
+  </footer>
+
+  <script>
+    // Set pdf.js worker before any PDF operations
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+  <script src="app.js?v=20260725-6"></script>
+</body>
+</html>
