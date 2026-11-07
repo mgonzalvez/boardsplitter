@@ -422,3 +422,11 @@ On 2026-07-25, public DNS resolvers returned the expected CNAME, GitHub reported
 - **Option A:** Let user set DPI directly, derive board width from DPI
 - **Option B:** Make grid authoritative — DPI = `originalWidthPx / (cols × effectiveW)`
 - **Option C:** Downscale imported images to a target DPI (e.g. 300) before processing
+
+## Registry & provenance rule (portfolio-wide)
+
+Personal project — completely separate from Apple work.
+
+- `.npmrc` pins `registry=https://registry.npmjs.org`. Never let Apple's internal npm mirror (`npm.apple.com`, `artifacts.apple.com/artifactory/...`) end up in `package-lock.json`; GitHub Actions can't reach it and CI fails with `ENOTFOUND`.
+- Audit before pushing: `../scripts/check-registry.sh` (add `--fix` to normalize).
+- No work credentials, internal hostnames, proprietary assets, or confidential material in this repo.
